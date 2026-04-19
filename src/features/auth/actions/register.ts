@@ -6,6 +6,9 @@ import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { registerSchema } from "../schemas/register-schema";
 
+const BCRYPT_SALT_ROUNDS = 10;
+const PG_UNIQUE_VIOLATION = "23505";
+
 export type RegisterState = {
   error?: string;
   success?: boolean;
@@ -46,7 +49,7 @@ export async function registerAction(
       }
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
     await db.insert(users).values({
       username,
@@ -57,17 +60,20 @@ export async function registerAction(
 
     return { success: true };
   } catch (error: unknown) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      (error as { code: string }).code === "23505"
-    ) {
+    if (isUniqueViolation(error)) {
       return {
         error: "An account with this username or email already exists",
       };
     }
-    console.error("Register action failed", error);
     return { error: "Something went wrong. Please try again." };
   }
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: string }).code === PG_UNIQUE_VIOLATION
+  );
 }

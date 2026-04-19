@@ -7,6 +7,7 @@ import { useActionState } from "react";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import { Modal } from "@/shared/components/ui/modal";
+import { ROUTES } from "@/shared/constants/routes";
 import {
   registerSchema,
   type RegisterFormData,
@@ -83,7 +84,7 @@ export function RegisterForm() {
         <p className="text-center text-sm text-gray-600">
           Already have an account?{" "}
           <Link
-            href="/login"
+            href={ROUTES.login}
             className="font-semibold text-indigo-600 hover:text-indigo-500"
           >
             Sign in
@@ -96,7 +97,7 @@ export function RegisterForm() {
           Your account has been created successfully.
         </p>
         <Link
-          href="/login"
+          href={ROUTES.login}
           className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
         >
           Go to Login

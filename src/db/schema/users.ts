@@ -12,7 +12,7 @@ export const users = pgTable("users", {
   username: varchar("username", { length: 50 }).unique().notNull(),
   email: varchar("email", { length: 255 }).unique().notNull(),
   password: text("password").notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
+  isActive: boolean("is_active").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

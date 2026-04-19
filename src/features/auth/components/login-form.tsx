@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useActionState } from "react";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
+import { ROUTES } from "@/shared/constants/routes";
 import { loginSchema, type LoginFormData } from "../schemas/login-schema";
 import { loginAction, type LoginState } from "../actions/login";
 
@@ -58,7 +59,7 @@ export function LoginForm() {
       <p className="text-center text-sm text-gray-600">
         Don&apos;t have an account?{" "}
         <Link
-          href="/register"
+          href={ROUTES.register}
           className="font-semibold text-indigo-600 hover:text-indigo-500"
         >
           Sign up

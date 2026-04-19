@@ -5,6 +5,7 @@ import { eq, or } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { signIn } from "@/lib/auth";
+import { ROUTES } from "@/shared/constants/routes";
 import { loginSchema } from "../schemas/login-schema";
 
 export type LoginState = {
@@ -12,9 +13,9 @@ export type LoginState = {
   success?: boolean;
 };
 
+const ADMIN_EMAIL = process.env.AUTH_ADMIN_EMAIL ?? "admin@example.com";
 const INVALID_CREDENTIALS = "Invalid email/username or password";
-const INACTIVE_ACCOUNT =
-  "Your account is not yet activated. Please contact admin@example.com to activate your account.";
+const INACTIVE_ACCOUNT = `Your account is not yet activated. Please contact ${ADMIN_EMAIL} to activate your account.`;
 
 export async function loginAction(
   _prevState: LoginState,
@@ -62,7 +63,7 @@ export async function loginAction(
     await signIn("credentials", {
       login: parsed.data.login,
       password: parsed.data.password,
-      redirectTo: "/dashboard",
+      redirectTo: ROUTES.dashboard,
     });
 
     return { success: true };
