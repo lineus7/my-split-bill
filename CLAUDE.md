@@ -23,10 +23,10 @@ src/
 │   └── auth/           # components/, actions/, schemas/
 ├── shared/             # Cross-feature shared code
 │   ├── components/ui/  # Reusable UI primitives (button, input, modal)
-│   ├── constants/      # App-wide constants (routes, etc.)
-│   └── lib/            # Utility functions (cn helper)
+│   ├── constants/      # App-wide constants (routes, general-keys)
+│   └── lib/            # Utility functions (cn helper, general lookup)
 ├── db/                 # Database layer
-│   ├── schema/         # Drizzle table schemas
+│   ├── schema/         # Drizzle table schemas (users, general)
 │   └── migrations/     # Generated migration files
 ├── lib/                # App-wide config (auth.ts)
 └── middleware.ts       # Auth route protection
@@ -49,12 +49,35 @@ pnpm db:studio      # Open Drizzle Studio (DB GUI)
 - **Zod schemas** for all validation (shared between client and server).
 - **Drizzle schema** defined in `src/db/schema/` — run `pnpm db:generate` after changes.
 - **Route paths** are centralised in `src/shared/constants/routes.ts` (`ROUTES.login`, `ROUTES.dashboard`, …). Don't hard-code `/login`, `/register`, `/dashboard` inline. Exception: `middleware.ts` `config.matcher` must stay as static literals (Next.js requirement).
+- **General table keys** are centralised in `src/shared/constants/general-keys.ts` (`GENERAL_KEYS`). Use `getGeneralValue` / `getGeneralList` from `src/shared/lib/general.ts` to query.
 - Import alias: `@/*` maps to `./src/*`.
+
+## General Lookup Table (`general`)
+A generic key-value store in the database for config and option lists.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid PK | auto-generated |
+| `key` | varchar(100) | groups related rows — not unique |
+| `value` | text | the stored value |
+| `created_at` / `updated_at` | timestamp | auto-set |
+
+**Singletons** (one row per key, e.g. admin email):
+```sql
+INSERT INTO general (key, value) VALUES ('auth.admin_email', 'admin@yourcompany.com');
+```
+
+**Option lists** (multiple rows share the same key, e.g. select options):
+```sql
+INSERT INTO general (key, value) VALUES ('gender', 'male'), ('gender', 'female');
+```
+
+Query helpers: `getGeneralValue(key)` returns the first match; `getGeneralList(key)` returns all rows for that key.
 
 ## Auth Flow
 - **Registration** (`/register`) creates users with `isActive: false` (matches the schema default). Admin must flip `users.is_active` to `true` before the user can log in.
-- **Login** (`/login`) pre-checks credentials in the server action. If the password is correct but the account is inactive, it returns a specific "contact <admin-email>" error (address comes from `AUTH_ADMIN_EMAIL`); otherwise `signIn("credentials", …)` is called. NextAuth's `authorize()` also rejects inactive users as a second layer of defense.
-- **Sign-out** goes through `signOutAction` in `src/features/auth/actions/sign-out.ts` (not an inline server action in the layout).
+- **Login** (`/login`) pre-checks credentials in the server action. If the password is correct but the account is inactive, it fetches the admin contact email from the `general` table (key: `auth.admin_email`, fallback: `admin@example.com`) and returns it in the error message; otherwise `signIn("credentials", …)` is called. NextAuth's `authorize()` also rejects inactive users as a second layer of defense.
+- **Sign-out** goes through `signOutAction` in `src/features/auth/actions/sign-out.ts`.
 - **Middleware** (`src/middleware.ts`) redirects authenticated users away from `/login` and `/register`, and unauthenticated users to `/login` for any protected route.
 
 ## Environment Variables
@@ -62,4 +85,3 @@ See `.env.example` for required variables:
 - `DATABASE_URL` — PostgreSQL connection string
 - `AUTH_SECRET` — NextAuth secret (generate with `openssl rand -base64 32`)
 - `AUTH_URL` — App URL (http://localhost:3000 for dev)
-- `AUTH_ADMIN_EMAIL` — Address shown to users when their account is inactive (fallback: `admin@example.com`)

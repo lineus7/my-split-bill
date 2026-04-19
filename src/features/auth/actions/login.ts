@@ -6,16 +6,21 @@ import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { signIn } from "@/lib/auth";
 import { ROUTES } from "@/shared/constants/routes";
+import { GENERAL_KEYS } from "@/shared/constants/general-keys";
+import { getGeneralValue } from "@/shared/lib/general";
 import { loginSchema } from "../schemas/login-schema";
+
+const ADMIN_EMAIL_FALLBACK = "admin@example.com";
+const INVALID_CREDENTIALS = "Invalid email/username or password";
+
+function inactiveAccountMessage(adminEmail: string): string {
+  return `Your account is not yet activated. Please contact ${adminEmail} to activate your account.`;
+}
 
 export type LoginState = {
   error?: string;
   success?: boolean;
 };
-
-const ADMIN_EMAIL = process.env.AUTH_ADMIN_EMAIL ?? "admin@example.com";
-const INVALID_CREDENTIALS = "Invalid email/username or password";
-const INACTIVE_ACCOUNT = `Your account is not yet activated. Please contact ${ADMIN_EMAIL} to activate your account.`;
 
 export async function loginAction(
   _prevState: LoginState,
@@ -56,7 +61,9 @@ export async function loginAction(
   }
 
   if (!user.isActive) {
-    return { error: INACTIVE_ACCOUNT };
+    const adminEmail =
+      (await getGeneralValue(GENERAL_KEYS.authAdminEmail)) ?? ADMIN_EMAIL_FALLBACK;
+    return { error: inactiveAccountMessage(adminEmail) };
   }
 
   try {
@@ -69,10 +76,7 @@ export async function loginAction(
     return { success: true };
   } catch (error: unknown) {
     // NextAuth throws NEXT_REDIRECT on success, which is expected
-    if (
-      error instanceof Error &&
-      error.message === "NEXT_REDIRECT"
-    ) {
+    if (error instanceof Error && error.message === "NEXT_REDIRECT") {
       throw error;
     }
     return { error: INVALID_CREDENTIALS };
