@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useActionState } from "react";
@@ -53,6 +54,16 @@ export function LoginForm() {
       <Button type="submit" isLoading={isPending}>
         Sign In
       </Button>
+
+      <p className="text-center text-sm text-gray-600">
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/register"
+          className="font-semibold text-indigo-600 hover:text-indigo-500"
+        >
+          Sign up
+        </Link>
+      </p>
     </form>
   );
 }

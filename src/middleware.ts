@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 
 export default auth((req) => {
   const isAuthenticated = !!req.auth;
-  const isAuthPage = req.nextUrl.pathname.startsWith("/login");
+  const isAuthPage =
+    req.nextUrl.pathname.startsWith("/login") ||
+    req.nextUrl.pathname.startsWith("/register");
 
   // Redirect authenticated users away from auth pages
   if (isAuthPage && isAuthenticated) {
@@ -19,5 +21,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/login", "/register"],
 };

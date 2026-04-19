@@ -16,13 +16,13 @@ Aplikasi split bill fullstack menggunakan Next.js 15 (App Router). Frontend + Ba
 ```
 src/
 ├── app/            # Next.js routing only (pages, layouts, API routes)
-│   ├── (auth)/     # Auth pages (login) — centered layout
+│   ├── (auth)/     # Auth pages (login, register) — centered layout
 │   ├── (dashboard)/ # Protected pages — dashboard layout
 │   └── api/auth/   # NextAuth API routes
 ├── features/       # Feature modules (auth, bills, groups, etc.)
 │   └── auth/       # components/, actions/, schemas/
 ├── shared/         # Cross-feature shared code
-│   ├── components/ui/  # Reusable UI components (button, input)
+│   ├── components/ui/  # Reusable UI components (button, input, modal)
 │   └── lib/        # Utility functions (cn helper)
 ├── db/             # Database layer
 │   ├── schema/     # Drizzle table schemas
@@ -47,6 +47,11 @@ pnpm db:studio      # Open Drizzle Studio (DB GUI)
 - **Zod schemas** for all validation (shared between client and server)
 - **Drizzle schema** defined in `src/db/schema/` — run `pnpm db:generate` after changes
 - Import alias: `@/*` maps to `./src/*`
+
+## Auth Flow
+- **Registration** (`/register`) creates users with `isActive: false`. Admin must flip `users.is_active` to `true` before the user can log in.
+- **Login** (`/login`) pre-checks credentials in the server action. If the password is correct but the account is inactive, it returns a specific "contact admin@example.com" error; otherwise `signIn("credentials", …)` is called. NextAuth's `authorize()` also rejects inactive users as a second layer of defense.
+- **Middleware** (`src/middleware.ts`) redirects authenticated users away from `/login` and `/register`, and unauthenticated users to `/login` for any protected route.
 
 ## Environment Variables
 See `.env.example` for required variables:
