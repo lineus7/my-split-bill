@@ -26,7 +26,7 @@ src/
 │   ├── constants/      # App-wide constants (routes, general-keys)
 │   └── lib/            # Utility functions (cn helper, general lookup)
 ├── db/                 # Database layer
-│   ├── schema/         # Drizzle table schemas (users, general)
+│   ├── schema/         # Drizzle table schemas (users, general, transactions, …)
 │   └── migrations/     # Generated migration files
 ├── lib/                # App-wide config (auth.ts)
 └── middleware.ts       # Auth route protection
@@ -73,6 +73,20 @@ INSERT INTO general (key, value) VALUES ('gender', 'male'), ('gender', 'female')
 ```
 
 Query helpers: `getGeneralValue(key)` returns the first match; `getGeneralList(key)` returns all rows for that key.
+
+## Domain Tables
+
+Core tables for the split-bill feature (all use UUID PKs, `created_at` / `updated_at` timestamps, hard delete).
+
+| Table | Schema file | Notes |
+|---|---|---|
+| `transaction_statuses` | `src/db/schema/transaction-statuses.ts` | Lookup table — seed with `pending`, `settled`, etc. |
+| `transactions` | `src/db/schema/transactions.ts` | Owner (`user_id` → `users.id`), status FK, `service_charge` + `tax_charge` (numeric 10,2) |
+| `transaction_items` | `src/db/schema/transaction-items.ts` | Line items belonging to a transaction |
+| `transaction_item_add_ons` | `src/db/schema/transaction-item-add-ons.ts` | Optional add-ons per item (e.g. extra sauce) |
+| `transaction_item_users` | `src/db/schema/transaction-item-users.ts` | People sharing an item — `display_name` is free-text (allows non-registered users) |
+
+FK chain: `transactions` → `transaction_items` → `transaction_item_add_ons` / `transaction_item_users`.
 
 ## Auth Flow
 - **Registration** (`/register`) creates users with `isActive: false` (matches the schema default). Admin must flip `users.is_active` to `true` before the user can log in.

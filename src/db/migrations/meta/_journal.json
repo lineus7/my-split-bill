@@ -15,6 +15,13 @@
       "when": 1776615393344,
       "tag": "0001_aspiring_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776784674943,
+      "tag": "0002_married_charles_xavier",
+      "breakpoints": true
     }
   ]
 }
