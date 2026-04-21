@@ -34,7 +34,7 @@ export function Modal({
       />
       <div
         className={cn(
-          "relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-900/5 sm:p-8",
+          "relative w-full rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-900/5",
           className
         )}
       >

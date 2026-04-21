@@ -8,7 +8,7 @@ type AuthCardProps = {
 export function AuthCard({ subtitle, children }: AuthCardProps) {
   return (
     <div className="w-full max-w-md">
-      <div className="rounded-2xl bg-white px-6 py-10 shadow-xl ring-1 ring-gray-900/5 sm:px-10">
+      <div className="rounded-2xl bg-white px-6 py-10 shadow-xl ring-1 ring-gray-900/5">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600">
             <BrandIcon />

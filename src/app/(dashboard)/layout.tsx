@@ -15,9 +15,9 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex min-h-dvh flex-1 flex-col bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex h-14 items-center justify-between px-4">
           <h1 className="text-lg font-semibold text-gray-900">My Split Bill</h1>
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-600">{session.user.name}</span>
@@ -33,7 +33,7 @@ export default async function DashboardLayout({
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="flex-1 px-4 py-6">
         {children}
       </main>
     </div>
