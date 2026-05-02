@@ -5,6 +5,7 @@ import { db } from "./index";
 import { users } from "./schema/users";
 import { general } from "./schema/general";
 import { transactionStatuses } from "./schema/transaction-statuses";
+import { transactionItemTypes } from "./schema/transaction-item-types";
 import { GENERAL_KEYS } from "@/shared/constants/general-keys";
 
 async function seed() {
@@ -14,6 +15,14 @@ async function seed() {
     .insert(transactionStatuses)
     .values({ status: "OPEN" })
     .onConflictDoNothing();
+
+  const itemTypes = ["ITEM", "TAX", "SERVICE_CHARGE", "ADDITIONAL"];
+  for (const type of itemTypes) {
+    await db
+      .insert(transactionItemTypes)
+      .values({ type })
+      .onConflictDoNothing();
+  }
 
   const hashedPassword = await bcrypt.hash("password", 10);
   await db

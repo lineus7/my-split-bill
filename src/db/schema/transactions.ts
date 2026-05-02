@@ -2,7 +2,6 @@ import {
   pgTable,
   uuid,
   varchar,
-  numeric,
   timestamp,
   index,
 } from "drizzle-orm/pg-core";
@@ -20,12 +19,6 @@ export const transactions = pgTable(
       .notNull()
       .references(() => transactionStatuses.id),
     title: varchar("title", { length: 255 }).notNull(),
-    serviceCharge: numeric("service_charge", { precision: 10, scale: 2 })
-      .notNull()
-      .default("0"),
-    taxCharge: numeric("tax_charge", { precision: 10, scale: 2 })
-      .notNull()
-      .default("0"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

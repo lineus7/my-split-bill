@@ -81,13 +81,14 @@ Core tables for the split-bill feature (all use UUID PKs, `created_at` / `update
 
 | Table | Schema file | Notes |
 |---|---|---|
-| `transaction_statuses` | `src/db/schema/transaction-statuses.ts` | Lookup table — seed with `pending`, `settled`, etc. |
-| `transactions` | `src/db/schema/transactions.ts` | Owner (`user_id` → `users.id`), status FK, `service_charge` + `tax_charge` (numeric 10,2) |
-| `transaction_items` | `src/db/schema/transaction-items.ts` | Line items belonging to a transaction |
+| `transaction_statuses` | `src/db/schema/transaction-statuses.ts` | Lookup table — seed with `OPEN`, etc. |
+| `transaction_item_types` | `src/db/schema/transaction-item-types.ts` | Lookup table — seed with `ITEM`, `TAX`, `SERVICE_CHARGE`, `ADDITIONAL` |
+| `transactions` | `src/db/schema/transactions.ts` | Owner (`user_id` → `users.id`), status FK |
+| `transaction_items` | `src/db/schema/transaction-items.ts` | Line items belonging to a transaction, `type_id` FK → `transaction_item_types` |
 | `transaction_item_add_ons` | `src/db/schema/transaction-item-add-ons.ts` | Optional add-ons per item (e.g. extra sauce) |
 | `transaction_item_users` | `src/db/schema/transaction-item-users.ts` | People sharing an item — `display_name` is free-text (allows non-registered users) |
 
-FK chain: `transactions` → `transaction_items` → `transaction_item_add_ons` / `transaction_item_users`.
+FK chain: `transactions` → `transaction_items` (→ `transaction_item_types`) → `transaction_item_add_ons` / `transaction_item_users`.
 
 ## Auth Flow
 - **Registration** (`/register`) creates users with `isActive: false` (matches the schema default). Admin must flip `users.is_active` to `true` before the user can log in.
