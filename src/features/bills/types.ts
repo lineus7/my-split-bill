@@ -34,3 +34,30 @@ export type BillDraftData = {
   additionalCharges: AdditionalChargeDraft[];
   customers: CustomerDraft[];
 };
+
+export type BillListItem = {
+  id: string;
+  title: string;
+  status: string;
+  createdAt: Date;
+  total: number;
+  itemCount: number;
+};
+
+export type BillDetailItem = {
+  id: string;
+  name: string;
+  type: "ITEM" | "TAX" | "SERVICE_CHARGE" | "ADDITIONAL";
+  price: number;
+  quantity: number;
+  addOns: Array<{ id: string; name: string; price: number; quantity: number }>;
+  users: Array<{ id: string; displayName: string }>;
+};
+
+export type BillDetail = {
+  id: string;
+  title: string;
+  status: string;
+  createdAt: Date;
+  items: BillDetailItem[];
+};
