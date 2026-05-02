@@ -10,6 +10,7 @@ Fullstack split-bill app built on Next.js 15 (App Router). Frontend and backend 
 - **Database**: PostgreSQL + Drizzle ORM
 - **Auth**: NextAuth v5 (Credentials provider, JWT session)
 - **Validation**: Zod v4 + React Hook Form
+- **State**: Zustand v5 (with `persist` middleware to localStorage — used for multi-page bill draft)
 - **Package Manager**: pnpm
 
 ## Project Structure
@@ -84,11 +85,27 @@ Core tables for the split-bill feature (all use UUID PKs, `created_at` / `update
 | `transaction_statuses` | `src/db/schema/transaction-statuses.ts` | Lookup table — seed with `OPEN`, etc. |
 | `transaction_item_types` | `src/db/schema/transaction-item-types.ts` | Lookup table — seed with `ITEM`, `TAX`, `SERVICE_CHARGE`, `ADDITIONAL` |
 | `transactions` | `src/db/schema/transactions.ts` | Owner (`user_id` → `users.id`), status FK |
-| `transaction_items` | `src/db/schema/transaction-items.ts` | Line items belonging to a transaction, `type_id` FK → `transaction_item_types` |
-| `transaction_item_add_ons` | `src/db/schema/transaction-item-add-ons.ts` | Optional add-ons per item (e.g. extra sauce) |
+| `transaction_items` | `src/db/schema/transaction-items.ts` | Line items; `type_id` FK → `transaction_item_types`; `quantity` int; `price` is negative for ADDITIONAL discount rows |
+| `transaction_item_add_ons` | `src/db/schema/transaction-item-add-ons.ts` | Optional add-ons per item; `quantity` int |
 | `transaction_item_users` | `src/db/schema/transaction-item-users.ts` | People sharing an item — `display_name` is free-text (allows non-registered users) |
 
 FK chain: `transactions` → `transaction_items` (→ `transaction_item_types`) → `transaction_item_add_ons` / `transaction_item_users`.
+
+## Bill Creation Flow
+
+Two-page flow, state persisted in Zustand store (`bill-draft-v1` localStorage key, cleared on submit):
+
+1. **Create Bill** (`/dashboard/bills/new`) — fill title, items (with add-ons, qty, price), tax/service charge (flat Rp), additional charges (toggle Charge/Discount). Live total shown in `BillSummary`. Validates with `billDraftSchema` before navigating.
+2. **Split Bill** (`/dashboard/bills/new/split`) — add customers (display name only), each customer selects which ITEM rows they share. TAX/SERVICE/ADDITIONAL auto-assigned to all customers. Validation: every item needs ≥1 customer. Submits via `createBillAction`.
+
+**Persistence model**: TAX, SERVICE_CHARGE, ADDITIONAL are stored as `transaction_items` rows — same query pattern as ITEM for per-customer split calculation.
+
+Feature module: `src/features/bills/` — `components/`, `stores/`, `schemas/`, `actions/`, `repositories/`, `lib/`, `types.ts`.
+
+Key files:
+- Store: `src/features/bills/stores/bill-draft-store.ts`
+- Calculations: `src/features/bills/lib/calculations.ts`
+- Repo (DB transaction): `src/features/bills/repositories/bill-repository.ts`
 
 ## Auth Flow
 - **Registration** (`/register`) creates users with `isActive: false` (matches the schema default). Admin must flip `users.is_active` to `true` before the user can log in.

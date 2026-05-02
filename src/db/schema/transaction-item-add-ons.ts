@@ -3,6 +3,7 @@ import {
   uuid,
   varchar,
   numeric,
+  integer,
   timestamp,
   index,
 } from "drizzle-orm/pg-core";
@@ -17,6 +18,7 @@ export const transactionItemAddOns = pgTable(
       .references(() => transactionItems.id),
     itemName: varchar("item_name", { length: 255 }).notNull(),
     price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+    quantity: integer("quantity").notNull().default(1),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
