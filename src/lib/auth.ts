@@ -1,10 +1,8 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { eq, or } from "drizzle-orm";
-import { db } from "@/db";
-import { users } from "@/db/schema";
 import { ROUTES } from "@/shared/constants/routes";
+import { findUserByLogin } from "@/features/auth/repositories/user-repository";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -19,12 +17,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!login || !password) return null;
 
-        const user = await db
-          .select()
-          .from(users)
-          .where(or(eq(users.email, login), eq(users.username, login)))
-          .limit(1)
-          .then((rows) => rows[0]);
+        const user = await findUserByLogin(login);
 
         if (!user || !user.isActive) return null;
 

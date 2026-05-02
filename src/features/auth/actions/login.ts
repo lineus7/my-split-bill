@@ -1,14 +1,12 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { eq, or } from "drizzle-orm";
-import { db } from "@/db";
-import { users } from "@/db/schema/users";
 import { signIn } from "@/lib/auth";
 import { ROUTES } from "@/shared/constants/routes";
 import { GENERAL_KEYS } from "@/shared/constants/general-keys";
 import { getGeneralValue } from "@/shared/lib/general";
 import { loginSchema } from "../schemas/login-schema";
+import { findUserByLogin } from "../repositories/user-repository";
 
 const ADMIN_EMAIL_FALLBACK = "admin@example.com";
 const INVALID_CREDENTIALS = "Invalid email/username or password";
@@ -39,17 +37,7 @@ export async function loginAction(
   // Pre-check so we can distinguish "wrong credentials" from "inactive account".
   // Only reveal inactivity AFTER the password has been verified — this prevents
   // account enumeration via the activation message.
-  const user = await db
-    .select()
-    .from(users)
-    .where(
-      or(
-        eq(users.email, parsed.data.login),
-        eq(users.username, parsed.data.login)
-      )
-    )
-    .limit(1)
-    .then((rows) => rows[0]);
+  const user = await findUserByLogin(parsed.data.login);
 
   if (!user) {
     return { error: INVALID_CREDENTIALS };

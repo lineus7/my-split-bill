@@ -20,7 +20,7 @@ src/
 │   ├── (dashboard)/    # Protected pages — dashboard layout
 │   └── api/auth/       # NextAuth API routes
 ├── features/           # Feature modules (auth, bills, groups, etc.)
-│   └── auth/           # components/, actions/, schemas/
+│   └── auth/           # components/, actions/, schemas/, repositories/
 ├── shared/             # Cross-feature shared code
 │   ├── components/ui/  # Reusable UI primitives (button, input, modal)
 │   ├── constants/      # App-wide constants (routes, general-keys)
@@ -43,9 +43,10 @@ pnpm db:studio      # Open Drizzle Studio (DB GUI)
 ```
 
 ## Conventions
-- **Feature-based structure**: Each feature has its own folder under `src/features/` with `components/`, `actions/`, `schemas/`, and `types.ts` when needed.
+- **Feature-based structure**: Each feature has its own folder under `src/features/` with `components/`, `actions/`, `schemas/`, `repositories/`, and `types.ts` when needed.
 - **Routing stays thin**: `src/app/` only handles routing. Business logic (including server actions) lives in `src/features/`.
-- **Server Actions** for form submissions and mutations (not REST API routes).
+- **Repository pattern**: All database queries live in `repositories/` inside each feature (e.g. `src/features/auth/repositories/user-repository.ts`). Server actions and other callers must never query the database directly — always go through repository functions.
+- **Server Actions** for form submissions and mutations (not REST API routes). Actions handle validation and business logic but delegate data access to repositories.
 - **Zod schemas** for all validation (shared between client and server).
 - **Drizzle schema** defined in `src/db/schema/` — run `pnpm db:generate` after changes.
 - **Route paths** are centralised in `src/shared/constants/routes.ts` (`ROUTES.login`, `ROUTES.dashboard`, …). Don't hard-code `/login`, `/register`, `/dashboard` inline. Exception: `middleware.ts` `config.matcher` must stay as static literals (Next.js requirement).
