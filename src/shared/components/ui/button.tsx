@@ -17,13 +17,13 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold",
-        "transition-colors duration-150",
+        "inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold",
+        "transition-all duration-200",
         "disabled:cursor-not-allowed disabled:opacity-50",
         variant === "primary" &&
-          "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none",
+          "bg-linear-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 hover:from-emerald-600 hover:to-teal-700 hover:shadow-emerald-500/40 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none active:scale-[0.98]",
         variant === "secondary" &&
-          "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500/20 focus:outline-none",
+          "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500/20 focus:outline-none",
         className
       )}
       disabled={disabled || isLoading}

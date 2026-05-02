@@ -8,12 +8,12 @@ type AuthCardProps = {
 export function AuthCard({ subtitle, children }: AuthCardProps) {
   return (
     <div className="w-full max-w-md">
-      <div className="rounded-2xl bg-white px-6 py-10 shadow-xl ring-1 ring-gray-900/5">
+      <div className="rounded-2xl border border-white/60 bg-white/70 px-6 py-10 shadow-xl backdrop-blur-xl">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30">
             <BrandIcon />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
             My Split Bill
           </h1>
           <p className="mt-1 text-sm text-gray-500">{subtitle}</p>

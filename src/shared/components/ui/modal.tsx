@@ -2,6 +2,7 @@
 
 import { cn } from "@/shared/lib/utils";
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 type ModalProps = {
   open: boolean;
@@ -18,11 +19,11 @@ export function Modal({
   onClose,
   className,
 }: ModalProps) {
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      className="fixed inset-0 z-50 mx-auto flex max-w-[480px] items-center justify-center px-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? "modal-title" : undefined}
@@ -34,7 +35,7 @@ export function Modal({
       />
       <div
         className={cn(
-          "relative w-full rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-900/5",
+          "relative w-full rounded-2xl border border-white/60 bg-white/80 p-6 shadow-xl backdrop-blur-xl",
           className
         )}
       >
@@ -48,6 +49,7 @@ export function Modal({
         )}
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

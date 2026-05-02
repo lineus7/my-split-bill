@@ -6,5 +6,21 @@
 }
 
 html {
-  background-color: #f3f4f6;
+  background-color: #f0fdf4;
+}
+
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.auth-bg {
+  background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 40%, #f0fdfa 70%, #ecfdf5 100%);
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
 }

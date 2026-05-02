@@ -60,7 +60,7 @@ export function LoginForm() {
         Don&apos;t have an account?{" "}
         <Link
           href={ROUTES.register}
-          className="font-semibold text-indigo-600 hover:text-indigo-500"
+          className="font-semibold text-emerald-600 hover:text-emerald-500"
         >
           Sign up
         </Link>

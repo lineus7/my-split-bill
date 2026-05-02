@@ -85,7 +85,7 @@ export function RegisterForm() {
           Already have an account?{" "}
           <Link
             href={ROUTES.login}
-            className="font-semibold text-indigo-600 hover:text-indigo-500"
+            className="font-semibold text-emerald-600 hover:text-emerald-500"
           >
             Sign in
           </Link>
@@ -98,7 +98,7 @@ export function RegisterForm() {
         </p>
         <Link
           href={ROUTES.login}
-          className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+          className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-linear-to-r from-emerald-500 to-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:from-emerald-600 hover:to-teal-700 hover:shadow-emerald-500/40 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
         >
           Go to Login
         </Link>
