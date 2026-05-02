@@ -23,3 +23,19 @@ export async function findExistingUser(username: string, email: string) {
 export async function createUser(data: NewUser) {
   await db.insert(users).values(data);
 }
+
+export async function findUserById(id: string) {
+  return db
+    .select()
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
+}
+
+export async function updateUserPassword(id: string, passwordHash: string) {
+  await db
+    .update(users)
+    .set({ password: passwordHash, updatedAt: new Date() })
+    .where(eq(users.id, id));
+}

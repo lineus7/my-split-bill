@@ -93,7 +93,8 @@ FK chain: `transactions` → `transaction_items` → `transaction_item_add_ons` 
 - **Registration** (`/register`) creates users with `isActive: false` (matches the schema default). Admin must flip `users.is_active` to `true` before the user can log in.
 - **Login** (`/login`) pre-checks credentials in the server action. If the password is correct but the account is inactive, it fetches the admin contact email from the `general` table (key: `auth.admin_email`, fallback: `admin@example.com`) and returns it in the error message; otherwise `signIn("credentials", …)` is called. NextAuth's `authorize()` also rejects inactive users as a second layer of defense.
 - **Sign-out** goes through `signOutAction` in `src/features/auth/actions/sign-out.ts`.
-- **Middleware** (`src/middleware.ts`) redirects authenticated users away from `/login` and `/register`, and unauthenticated users to `/login` for any protected route.
+- **Change password** (`/dashboard/change-password`) verifies the current password via `bcrypt.compare`, hashes the new one, updates `users.password` (and `updated_at` manually — Drizzle does not auto-update), then signs the user out and redirects to `/login`. Accessible from the username dropdown in the dashboard header.
+- **Middleware** (`src/middleware.ts`) redirects authenticated users away from `/login` and `/register`, and unauthenticated users to `/login` for any protected route. The `/dashboard/:path*` matcher automatically covers `/dashboard/change-password` — no middleware change needed for new dashboard sub-routes.
 
 ## Environment Variables
 See `.env.example` for required variables:
