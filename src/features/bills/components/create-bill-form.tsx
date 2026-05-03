@@ -11,12 +11,14 @@ import { useBillDraftStore } from "../stores/bill-draft-store";
 import { ItemRow } from "./item-row";
 import { AdditionalChargeRow } from "./additional-charge-row";
 import { BillSummary } from "./bill-summary";
+import { ScanBillModal } from "./scan-bill-modal";
 
 export function CreateBillForm() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showScanModal, setShowScanModal] = useState(false);
 
   const {
     title, items, taxAmount, serviceAmount, additionalCharges,
@@ -85,16 +87,29 @@ export function CreateBillForm() {
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-semibold text-gray-800">Items</h2>
-            <button
-              type="button"
-              onClick={addItem}
-              className="flex items-center gap-1 text-sm text-emerald-600 transition hover:text-emerald-700"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              Add Item
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowScanModal(true)}
+                className="flex items-center gap-1 text-sm text-gray-500 transition hover:text-gray-700"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                </svg>
+                Scan Bill
+              </button>
+              <button
+                type="button"
+                onClick={addItem}
+                className="flex items-center gap-1 text-sm text-emerald-600 transition hover:text-emerald-700"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Item
+              </button>
+            </div>
           </div>
 
           {items.length === 0 ? (
@@ -195,6 +210,11 @@ export function CreateBillForm() {
           )}
         </div>
       </div>
+
+      <ScanBillModal
+        open={showScanModal}
+        onClose={() => setShowScanModal(false)}
+      />
 
       <Modal
         open={showResetConfirm}

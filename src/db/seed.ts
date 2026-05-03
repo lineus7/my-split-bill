@@ -48,6 +48,19 @@ async function seed() {
     });
   }
 
+  const existingGeminiModel = await db
+    .select()
+    .from(general)
+    .where(eq(general.key, GENERAL_KEYS.geminiModel))
+    .limit(1);
+
+  if (existingGeminiModel.length === 0) {
+    await db.insert(general).values({
+      key: GENERAL_KEYS.geminiModel,
+      value: "gemini-2.5-flash",
+    });
+  }
+
   console.log("Done.");
   process.exit(0);
 }

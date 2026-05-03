@@ -96,6 +96,7 @@ FK chain: `transactions` → `transaction_items` (→ `transaction_item_types`) 
 Two-page flow, state persisted in Zustand store (`bill-draft-v1` localStorage key, cleared on submit):
 
 1. **Create Bill** (`/dashboard/bills/new`) — fill title, items (with add-ons, qty, price), tax/service charge (flat Rp), additional charges (toggle Charge/Discount). Live total shown in `BillSummary`. Validates with `billDraftSchema` before navigating.
+   - **Scan Bill** button in the Items section header opens a modal to upload or capture a receipt photo. Gemini AI extracts the receipt into structured JSON and populates the draft store via `loadDraft()`. If the draft is non-empty, the user must confirm before replacing.
 2. **Split Bill** (`/dashboard/bills/new/split`) — add customers (display name only), each customer selects which ITEM rows they share. TAX/SERVICE/ADDITIONAL auto-assigned to all customers. Validation: every item needs ≥1 customer. Submits via `createBillAction`.
 
 **Persistence model**: TAX, SERVICE_CHARGE, ADDITIONAL are stored as `transaction_items` rows — same query pattern as ITEM for per-customer split calculation.
@@ -103,9 +104,22 @@ Two-page flow, state persisted in Zustand store (`bill-draft-v1` localStorage ke
 Feature module: `src/features/bills/` — `components/`, `stores/`, `schemas/`, `actions/`, `repositories/`, `lib/`, `types.ts`.
 
 Key files:
-- Store: `src/features/bills/stores/bill-draft-store.ts`
+- Store: `src/features/bills/stores/bill-draft-store.ts` — includes `loadDraft(ScanBillResult)` to atomically populate from AI scan
 - Calculations: `src/features/bills/lib/calculations.ts`
 - Repo (DB transaction): `src/features/bills/repositories/bill-repository.ts`
+- Scan action: `src/features/bills/actions/scan-bill.ts` — server action; accepts `image` File via FormData, calls Gemini API, returns `ScanBillResult`
+- Scan modal: `src/features/bills/components/scan-bill-modal.tsx`
+- Scan schema: `src/features/bills/schemas/scan-bill-schema.ts`
+
+## AI Bill Scanning (Gemini)
+
+Receipt scanning uses the Google Gemini API (`@google/genai` SDK).
+
+- **Env var**: `GEMINI_API_KEY` — required for the scan feature.
+- **Model**: stored in `general` table under key `gemini.model` (default `gemini-2.5-flash`, seeded by `src/db/seed.ts`). Change the DB row to switch models without redeployment.
+- **General key**: `GENERAL_KEYS.geminiModel` = `"gemini.model"`.
+- Image is passed as base64 `inlineData`. Response is forced to JSON via `responseMimeType: "application/json"` + `responseJsonSchema`.
+- Max image size enforced client-side and server-side: 8 MB.
 
 ## Bill Detail (Public)
 

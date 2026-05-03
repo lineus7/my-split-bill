@@ -8,6 +8,7 @@ import type {
   CustomerDraft,
   ItemDraft,
 } from "../types";
+import type { ScanBillResult } from "../schemas/scan-bill-schema";
 
 function newId(): string {
   return crypto.randomUUID();
@@ -36,6 +37,7 @@ type BillDraftState = {
   addCustomer: (name: string) => void;
   removeCustomer: (id: string) => void;
   toggleItemForCustomer: (customerId: string, itemId: string) => void;
+  loadDraft: (data: ScanBillResult) => void;
   reset: () => void;
 };
 
@@ -166,6 +168,32 @@ export const useBillDraftStore = create<BillDraftState>()(
             };
           }),
         })),
+
+      loadDraft: (data) =>
+        set({
+          title: data.title,
+          items: data.items.map((it) => ({
+            id: newId(),
+            name: it.name,
+            price: it.price,
+            quantity: it.quantity,
+            addOns: it.addOns.map((a) => ({
+              id: newId(),
+              name: a.name,
+              price: a.price,
+              quantity: a.quantity,
+            })),
+          })),
+          taxAmount: data.taxAmount,
+          serviceAmount: data.serviceAmount,
+          additionalCharges: data.additionalCharges.map((c) => ({
+            id: newId(),
+            name: c.name,
+            amount: c.amount,
+            kind: c.kind,
+          })),
+          customers: [],
+        }),
 
       reset: () => set(initialState),
     }),
