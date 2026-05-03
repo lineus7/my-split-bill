@@ -36,12 +36,11 @@ export function AddOnRow({ addOn, onUpdate, onRemove }: Props) {
         <Input
           label="Price"
           type="number"
-          min={0}
           value={addOn.price}
           onChange={(e) =>
-            onUpdate({ price: Math.max(0, parseFloat(e.target.value) || 0) })
+            onUpdate({ price: parseFloat(e.target.value) || 0 })
           }
-          placeholder="0"
+          placeholder="0 (negative for discount)"
         />
       </div>
       <button

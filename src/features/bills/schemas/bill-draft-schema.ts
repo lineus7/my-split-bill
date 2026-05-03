@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 const addOnSchema = z.object({
   id: z.string(),
   name: z.string().min(1, "Add-on name is required"),
-  price: z.number().min(0, "Price must be 0 or more"),
+  price: z.number(),
   quantity: z.number().int().min(1, "Quantity must be at least 1"),
 });
 

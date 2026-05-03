@@ -82,7 +82,9 @@ export function BillDetailByItem({ items }: Props) {
                 </div>
                 {item.shares.length > 1 && (
                   <p className="mt-1 text-xs text-gray-400">
-                    Split equally · {formatRupiah(Math.abs(item.perPersonShare))} each
+                    {item.type === ITEM_TYPES.ITEM
+                      ? `Split equally · ${formatRupiah(Math.abs(item.perPersonShare ?? 0))} each`
+                      : "Split proportionally to each person's items"}
                   </p>
                 )}
               </div>
