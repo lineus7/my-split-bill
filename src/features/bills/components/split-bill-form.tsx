@@ -38,6 +38,13 @@ export function SplitBillForm() {
   }, [mounted, items.length, router]);
 
   useEffect(() => {
+    if (state.success) {
+      reset();
+      router.push(ROUTES.dashboard);
+    }
+  }, [state.success, reset, router]);
+
+  useEffect(() => {
     if (customers.length > 0 && !customers.find((c) => c.id === activeCustomerId)) {
       setActiveCustomerId(customers[0].id);
     }
@@ -58,24 +65,15 @@ export function SplitBillForm() {
   const unassignedItems = items.filter(
     (item) => !customers.some((c) => c.itemIds.includes(item.id))
   );
-  const canSubmit =
-    customers.length > 0 && unassignedItems.length === 0;
-
+  const canSubmit = customers.length > 0 && unassignedItems.length === 0;
   const total = calcGrandTotal(items, taxAmount, serviceAmount, additionalCharges);
 
   function handleSubmit() {
     const payload = JSON.stringify({
-      title,
-      items,
-      taxAmount,
-      serviceAmount,
-      additionalCharges,
-      customers,
+      title, items, taxAmount, serviceAmount, additionalCharges, customers,
     });
-
     const formData = new FormData();
     formData.append("payload", payload);
-
     startTransition(() => {
       formAction(formData);
     });
@@ -138,23 +136,14 @@ export function SplitBillForm() {
         </div>
       )}
 
-      <div className="flex gap-3">
-        <Button
-          variant="secondary"
-          type="button"
-          onClick={() => router.push(ROUTES.billsNew)}
-        >
-          ← Back
-        </Button>
-        <Button
-          type="button"
-          onClick={handleSubmit}
-          isLoading={isPending}
-          disabled={!canSubmit}
-        >
-          Submit Bill
-        </Button>
-      </div>
+      <Button
+        type="button"
+        onClick={handleSubmit}
+        isLoading={isPending}
+        disabled={!canSubmit}
+      >
+        Submit Bill
+      </Button>
     </div>
   );
 }

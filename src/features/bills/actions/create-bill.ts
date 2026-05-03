@@ -1,13 +1,12 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { ROUTES } from "@/shared/constants/routes";
 import { createBillSchema } from "../schemas/create-bill-schema";
 import { createBillWithSplit } from "../repositories/bill-repository";
 
 export type CreateBillState = {
   error?: string;
+  success?: boolean;
 };
 
 export async function createBillAction(
@@ -33,5 +32,5 @@ export async function createBillAction(
 
   await createBillWithSplit(session.user.id, result.data);
 
-  redirect(ROUTES.dashboard);
+  return { success: true };
 }

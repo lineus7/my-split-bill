@@ -7,11 +7,13 @@ import { calcBillTotal, buildPerItemBreakdown, buildPerUserBreakdown } from "../
 import type { BillDetail as BillDetailType } from "../types";
 import { BillDetailByUser } from "./bill-detail-by-user";
 import { BillDetailByItem } from "./bill-detail-by-item";
+import { ShareBillButton } from "./share-bill-button";
 
 type View = "user" | "item";
 
 type Props = {
   bill: BillDetailType;
+  shareUrl: string;
 };
 
 function formatDate(date: Date): string {
@@ -24,7 +26,7 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
-export function BillDetail({ bill }: Props) {
+export function BillDetail({ bill, shareUrl }: Props) {
   const [view, setView] = useState<View>("user");
 
   const perUser = buildPerUserBreakdown(bill);
@@ -41,11 +43,14 @@ export function BillDetail({ bill }: Props) {
             <p className="text-sm opacity-75">Total</p>
             <p className="text-2xl font-bold">{formatRupiah(total)}</p>
           </div>
-          <div className="text-right">
-            <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold">
-              {bill.status}
-            </span>
-            <p className="mt-1 text-sm opacity-75">
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold">
+                {bill.status}
+              </span>
+              <ShareBillButton url={shareUrl} title={bill.title} />
+            </div>
+            <p className="text-sm opacity-75">
               {perUser.length} customer{perUser.length !== 1 ? "s" : ""}
               {" · "}
               {bill.items.filter((i) => i.type === "ITEM").length} item

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { transactions } from "@/db/schema/transactions";
 import { transactionItems } from "@/db/schema/transaction-items";
@@ -229,8 +229,7 @@ export async function findBillsByUserId(
 }
 
 export async function findBillByIdWithDetails(
-  billId: string,
-  userId: string
+  billId: string
 ): Promise<BillDetail | null> {
   const billRow = await db
     .select({
@@ -245,9 +244,7 @@ export async function findBillByIdWithDetails(
       transactionStatuses,
       eq(transactions.statusId, transactionStatuses.id)
     )
-    .where(
-      and(eq(transactions.id, billId), eq(transactions.userId, userId))
-    )
+    .where(eq(transactions.id, billId))
     .limit(1)
     .then((r) => r[0] ?? null);
 
@@ -327,6 +324,7 @@ export async function findBillByIdWithDetails(
     title: billRow.title,
     status: billRow.status,
     createdAt: billRow.createdAt,
+    ownerId: billRow.userId,
     items: itemRows.map((item) => ({
       id: item.id,
       name: item.itemName,

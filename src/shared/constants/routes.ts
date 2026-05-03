@@ -6,5 +6,5 @@ export const ROUTES = {
   changePassword: "/dashboard/change-password",
   billsNew: "/dashboard/bills/new",
   billsNewSplit: "/dashboard/bills/new/split",
-  billDetail: (id: string) => `/dashboard/bills/${id}`,
+  billDetail: (id: string) => `/bills/${id}`,
 } as const;

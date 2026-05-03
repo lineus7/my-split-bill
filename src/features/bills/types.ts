@@ -59,5 +59,6 @@ export type BillDetail = {
   title: string;
   status: string;
   createdAt: Date;
+  ownerId: string;
   items: BillDetailItem[];
 };

@@ -107,6 +107,16 @@ Key files:
 - Calculations: `src/features/bills/lib/calculations.ts`
 - Repo (DB transaction): `src/features/bills/repositories/bill-repository.ts`
 
+## Bill Detail (Public)
+
+Bill detail pages are publicly accessible at `/bills/[id]` — no login required. The UUID in the URL is the access secret (URL-as-secret, no separate share-link table).
+
+- Route: `src/app/bills/[id]/page.tsx` + `layout.tsx` (public layout, outside `(dashboard)` group)
+- Header is adaptive: logged-in users see UserMenu + back-to-dashboard button; anonymous visitors see "Sign in" and "Create account" CTAs.
+- Share button (`src/features/bills/components/share-bill-button.tsx`) in the detail hero card uses Web Share API on mobile, clipboard copy with 2s "Copied ✓" feedback on desktop.
+- `ROUTES.billDetail(id)` resolves to `/bills/${id}`.
+- `findBillByIdWithDetails(billId)` (no `userId` param) — public lookup, returns `ownerId` field. Owner-scoped reads (`findBillsByUserId`) are unchanged.
+
 ## Auth Flow
 - **Registration** (`/register`) creates users with `isActive: false` (matches the schema default). Admin must flip `users.is_active` to `true` before the user can log in.
 - **Login** (`/login`) pre-checks credentials in the server action. If the password is correct but the account is inactive, it fetches the admin contact email from the `general` table (key: `auth.admin_email`, fallback: `admin@example.com`) and returns it in the error message; otherwise `signIn("credentials", …)` is called. NextAuth's `authorize()` also rejects inactive users as a second layer of defense.
