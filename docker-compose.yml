@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: ryansaiwa/my-split-bill:1.0
     ports:
       - "3000:3000"
     env_file:
