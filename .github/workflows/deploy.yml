@@ -23,6 +23,9 @@ concurrency:
 env:
   IMAGE_APP: ${{ secrets.DOCKERHUB_USERNAME }}/my-split-bill
   IMAGE_MIGRATE: ${{ secrets.DOCKERHUB_USERNAME }}/my-split-bill-migrate
+  # Paksa semua JS action jalan di Node.js 24 (Node 20 deprecated per Sep 2026).
+  # Hapus baris ini setelah Juni 2026 saat Node 24 jadi default.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # -------------------------------------------------------------------
