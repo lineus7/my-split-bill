@@ -2,10 +2,14 @@
 # CD — Continuous Deployment
 # Trigger: setiap push ke main (biasanya hasil merge PR yang sudah
 # lolos CI). Flow:
-#   1. Build 2 Docker image (app + migrator) dari Dockerfile yang sama
-#      pakai target multi-stage, lalu push ke Docker Hub.
-#   2. SSH ke server, kirim docker-compose.yml terbaru, jalankan
-#      migration, lalu restart container web ke image baru.
+#   1. Build Docker image app, push ke Docker Hub.
+#   2. SSH ke server, kirim docker-compose.yml terbaru, restart
+#      container web ke image baru.
+#
+# Catatan: migrasi DB belum di-otomatisasi. Untuk sekarang jalankan
+# manual via SSH kalau ada perubahan schema:
+#   ssh user@host "cd ~/my-split-bill && pnpm db:migrate"
+# (atau cara lain sesuai workflow-mu).
 # =====================================================================
 
 name: Deploy to Production
@@ -22,17 +26,16 @@ concurrency:
 
 env:
   IMAGE_APP: ${{ secrets.DOCKERHUB_USERNAME }}/my-split-bill
-  IMAGE_MIGRATE: ${{ secrets.DOCKERHUB_USERNAME }}/my-split-bill-migrate
   # Paksa semua JS action jalan di Node.js 24 (Node 20 deprecated per Sep 2026).
   # Hapus baris ini setelah Juni 2026 saat Node 24 jadi default.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # -------------------------------------------------------------------
-  # Job 1: Build & push 2 image ke Docker Hub
+  # Job 1: Build & push image app ke Docker Hub
   # -------------------------------------------------------------------
   build-and-push:
-    name: Build & Push Images
+    name: Build & Push Image
     runs-on: ubuntu-latest
 
     steps:
@@ -64,19 +67,6 @@ jobs:
           cache-from: type=gha,scope=app
           cache-to: type=gha,mode=max,scope=app
 
-      # Build & push image MIGRATOR (target=migrator -> drizzle-kit migrate)
-      - name: Build & push migrator image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          target: migrator
-          push: true
-          tags: |
-            ${{ env.IMAGE_MIGRATE }}:latest
-            ${{ env.IMAGE_MIGRATE }}:${{ github.sha }}
-          cache-from: type=gha,scope=migrate
-          cache-to: type=gha,mode=max,scope=migrate
-
   # -------------------------------------------------------------------
   # Job 2: Deploy ke server via SSH
   # Hanya jalan kalau job 1 sukses (needs:).
@@ -106,7 +96,7 @@ jobs:
           ssh-keyscan -H "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
 
       # Kirim docker-compose.yml terbaru ke server.
-      # Asumsi: folder ~/my-split-bill sudah ada (lihat Step 6 di plan).
+      # Asumsi: folder ~/my-split-bill sudah ada (lihat plan).
       - name: Copy docker-compose.yml to server
         run: |
           scp docker-compose.yml \
@@ -120,22 +110,16 @@ jobs:
             set -euo pipefail
             cd ~/my-split-bill
 
-            # Login Docker Hub di server (kalau image private; kalau public boleh skip)
-            # echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
-
             export TAG=${{ github.sha }}
             echo ">> Deploying TAG=$TAG"
 
             # 1) Tarik image baru (container lama masih jalan)
-            docker compose pull web migrate
+            docker compose pull web
 
-            # 2) Jalankan migrasi DB sekali, container exit setelahnya
-            docker compose run --rm migrate
-
-            # 3) Restart container web ke image baru (downtime ~beberapa detik)
+            # 2) Restart container web ke image baru (downtime ~beberapa detik)
             docker compose up -d web
 
-            # 4) Bersihkan image dangling supaya disk server nggak penuh
+            # 3) Bersihkan image dangling supaya disk server nggak penuh
             docker image prune -f
 
             echo ">> Deploy selesai"
