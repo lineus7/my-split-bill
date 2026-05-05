@@ -1,10 +1,14 @@
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: ryansaiwa/my-split-bill:1.0
+    image: ${DOCKERHUB_USERNAME:-ryansaiwa}/my-split-bill:${TAG:-latest}
+    restart: unless-stopped
     ports:
       - "3000:3000"
     env_file:
       - .env
+
+  migrate:
+    image: ${DOCKERHUB_USERNAME:-ryansaiwa}/my-split-bill-migrate:${TAG:-latest}
+    env_file:
+      - .env
+    profiles: ["migrate"]

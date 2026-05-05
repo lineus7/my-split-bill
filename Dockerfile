@@ -39,3 +39,16 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]
+
+FROM base AS migrator
+WORKDIR /app
+
+RUN corepack enable pnpm
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+COPY drizzle.config.ts ./
+COPY src/db ./src/db
+
+CMD ["pnpm", "db:migrate"]

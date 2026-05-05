@@ -1,0 +1,142 @@
+# =====================================================================
+# CD — Continuous Deployment
+# Trigger: setiap push ke main (biasanya hasil merge PR yang sudah
+# lolos CI). Flow:
+#   1. Build 2 Docker image (app + migrator) dari Dockerfile yang sama
+#      pakai target multi-stage, lalu push ke Docker Hub.
+#   2. SSH ke server, kirim docker-compose.yml terbaru, jalankan
+#      migration, lalu restart container web ke image baru.
+# =====================================================================
+
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+# Cegah dua deploy berjalan paralel (race condition di server).
+# Run baru akan menunggu run sebelumnya selesai.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  IMAGE_APP: ${{ secrets.DOCKERHUB_USERNAME }}/my-split-bill
+  IMAGE_MIGRATE: ${{ secrets.DOCKERHUB_USERNAME }}/my-split-bill-migrate
+  # Paksa semua JS action jalan di Node.js 24 (Node 20 deprecated per Sep 2026).
+  # Hapus baris ini setelah Juni 2026 saat Node 24 jadi default.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # -------------------------------------------------------------------
+  # Job 1: Build & push 2 image ke Docker Hub
+  # -------------------------------------------------------------------
+  build-and-push:
+    name: Build & Push Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Buildx = builder Docker modern, support cache layer & multi-platform
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login ke Docker Hub pakai token (BUKAN password)
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Build & push image APP (target=runner -> Next.js standalone)
+      # Tag dua-duanya: SHA (audit trail) + latest (alias)
+      - name: Build & push app image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: runner
+          push: true
+          tags: |
+            ${{ env.IMAGE_APP }}:latest
+            ${{ env.IMAGE_APP }}:${{ github.sha }}
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,mode=max,scope=app
+
+      # Build & push image MIGRATOR (target=migrator -> drizzle-kit migrate)
+      - name: Build & push migrator image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: migrator
+          push: true
+          tags: |
+            ${{ env.IMAGE_MIGRATE }}:latest
+            ${{ env.IMAGE_MIGRATE }}:${{ github.sha }}
+          cache-from: type=gha,scope=migrate
+          cache-to: type=gha,mode=max,scope=migrate
+
+  # -------------------------------------------------------------------
+  # Job 2: Deploy ke server via SSH
+  # Hanya jalan kalau job 1 sukses (needs:).
+  # -------------------------------------------------------------------
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Pasang SSH agent dengan private key dari secret.
+      # Agent ini otomatis dipakai semua step ssh/scp di bawahnya.
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      # Tambahkan host fingerprint server ke known_hosts.
+      # Tanpa ini, SSH akan prompt "Are you sure you want to continue (yes/no)?"
+      # dan workflow akan hang/timeout.
+      - name: Add server to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
+
+      # Kirim docker-compose.yml terbaru ke server.
+      # Asumsi: folder ~/my-split-bill sudah ada (lihat Step 6 di plan).
+      - name: Copy docker-compose.yml to server
+        run: |
+          scp docker-compose.yml \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/my-split-bill/docker-compose.yml
+
+      # Eksekusi deployment di server.
+      # TAG diset ke commit SHA -> compose akan tarik image versi ini.
+      - name: Deploy on server
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash <<'EOF'
+            set -euo pipefail
+            cd ~/my-split-bill
+
+            # Login Docker Hub di server (kalau image private; kalau public boleh skip)
+            # echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+
+            export TAG=${{ github.sha }}
+            echo ">> Deploying TAG=$TAG"
+
+            # 1) Tarik image baru (container lama masih jalan)
+            docker compose pull web migrate
+
+            # 2) Jalankan migrasi DB sekali, container exit setelahnya
+            docker compose run --rm migrate
+
+            # 3) Restart container web ke image baru (downtime ~beberapa detik)
+            docker compose up -d web
+
+            # 4) Bersihkan image dangling supaya disk server nggak penuh
+            docker image prune -f
+
+            echo ">> Deploy selesai"
+          EOF

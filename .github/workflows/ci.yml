@@ -1,0 +1,61 @@
+# =====================================================================
+# CI — Continuous Integration
+# Tujuan: setiap PR ke main & setiap push ke main, kode wajib lolos
+# lint + build dulu. Kalau gagal, merge harus diblokir (atur di
+# GitHub Settings → Branches → Branch protection rules).
+# =====================================================================
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Paksa semua JS action jalan di Node.js 24 (Node 20 deprecated per Sep 2026).
+# Hapus baris ini setelah Juni 2026 saat Node 24 jadi default.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  lint-and-build:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Tarik kode repo ke runner
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Aktifkan pnpm via corepack (sesuai setup project)
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      # 3) Pasang Node.js + cache pnpm store -> install jadi cepat di run berikutnya
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # 4) Install dependencies persis sesuai lockfile (deterministic)
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 5) ESLint -> tangkap masalah style/bug umum
+      - name: Lint
+        run: pnpm lint
+
+      # 6) Production build -> sekaligus type-check (Next.js panggil tsc)
+      #    DATABASE_URL dummy supaya import drizzle saat build tidak error.
+      #    Build Next.js statis, tidak benar-benar konek ke DB.
+      - name: Build
+        env:
+          DATABASE_URL: postgres://user:pass@localhost:5432/dummy
+          AUTH_SECRET: dummy-build-secret-not-used-at-runtime
+          AUTH_URL: http://localhost:3000
+          GEMINI_API_KEY: dummy
+        run: pnpm build
