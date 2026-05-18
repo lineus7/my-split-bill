@@ -1,3 +1,7 @@
+# My Split Bill
+
+My Split Bill is a Next.js 15 split-bill application for creating bills, assigning shared items to customers, and sharing public bill detail links.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
