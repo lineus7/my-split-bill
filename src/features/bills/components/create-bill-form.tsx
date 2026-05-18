@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import { Modal } from "@/shared/components/ui/modal";
 import { ROUTES } from "@/shared/constants/routes";
+import { useMounted } from "@/shared/lib/use-mounted";
 import { billDraftSchema } from "../schemas/bill-draft-schema";
 import { useBillDraftStore } from "../stores/bill-draft-store";
 import { ItemRow } from "./item-row";
@@ -15,7 +16,7 @@ import { ScanBillModal } from "./scan-bill-modal";
 
 export function CreateBillForm() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [error, setError] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showScanModal, setShowScanModal] = useState(false);
@@ -28,10 +29,6 @@ export function CreateBillForm() {
     addAdditional, updateAdditional, removeAdditional,
     reset,
   } = useBillDraftStore();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!mounted) {
     return (

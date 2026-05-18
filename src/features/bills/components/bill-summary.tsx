@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  calcAdditionalNet,
   calcGrandTotal,
   calcSubtotal,
   formatRupiah,
@@ -22,7 +21,6 @@ export function BillSummary({
   additionalCharges,
 }: Props) {
   const subtotal = calcSubtotal(items);
-  const additionalNet = calcAdditionalNet(additionalCharges);
   const total = calcGrandTotal(items, taxAmount, serviceAmount, additionalCharges);
 
   return (

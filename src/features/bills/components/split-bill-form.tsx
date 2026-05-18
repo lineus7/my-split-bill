@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { ROUTES } from "@/shared/constants/routes";
+import { useMounted } from "@/shared/lib/use-mounted";
 import { formatRupiah, calcGrandTotal } from "../lib/calculations";
 import { useBillDraftStore } from "../stores/bill-draft-store";
 import { createBillAction, type CreateBillState } from "../actions/create-bill";
@@ -13,8 +14,8 @@ import { ItemAssignmentChecklist } from "./item-assignment-checklist";
 
 export function SplitBillForm() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [activeCustomerId, setActiveCustomerId] = useState<string | null>(null);
+  const mounted = useMounted();
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   const {
@@ -26,10 +27,6 @@ export function SplitBillForm() {
     createBillAction,
     {}
   );
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (mounted && items.length === 0) {
@@ -44,15 +41,6 @@ export function SplitBillForm() {
     }
   }, [state.success, reset, router]);
 
-  useEffect(() => {
-    if (customers.length > 0 && !customers.find((c) => c.id === activeCustomerId)) {
-      setActiveCustomerId(customers[0].id);
-    }
-    if (customers.length === 0) {
-      setActiveCustomerId(null);
-    }
-  }, [customers, activeCustomerId]);
-
   if (!mounted) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -61,7 +49,9 @@ export function SplitBillForm() {
     );
   }
 
-  const activeCustomer = customers.find((c) => c.id === activeCustomerId) ?? null;
+  const activeCustomer =
+    customers.find((c) => c.id === selectedCustomerId) ?? customers[0] ?? null;
+  const activeCustomerId = activeCustomer?.id ?? null;
   const unassignedItems = items.filter(
     (item) => !customers.some((c) => c.itemIds.includes(item.id))
   );
@@ -100,7 +90,7 @@ export function SplitBillForm() {
         <CustomerTabBar
           customers={customers}
           activeId={activeCustomerId}
-          onSelect={setActiveCustomerId}
+          onSelect={setSelectedCustomerId}
           onAdd={addCustomer}
           onRemove={removeCustomer}
         />
